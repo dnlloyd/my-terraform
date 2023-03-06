@@ -2,7 +2,7 @@ name: tf-plan
 
 on:
   push:
-    branches-ignore:
+    branches:
       - 'main'
     paths: 
       - 'stacks/**'
