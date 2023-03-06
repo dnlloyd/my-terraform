@@ -3,7 +3,7 @@ resource "aws_s3_bucket" "b" {
 
   tags = {
     Name        = "GHA ARC Runner test"
-    Environment = "ed"
+    Environment = "martha"
   }
 }
 
