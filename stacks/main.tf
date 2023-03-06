@@ -2,7 +2,7 @@ resource "aws_s3_bucket" "b" {
   bucket = "gha-arc-test-bucket"
 
   tags = {
-    Name        = "My bucket"
+    Name        = "GHA ARC Runner test"
     Environment = "Dev"
   }
 }
