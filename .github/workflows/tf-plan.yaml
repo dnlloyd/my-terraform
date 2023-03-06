@@ -1,0 +1,50 @@
+name: tf-plan
+
+on:
+  push:
+    branches-ignore:
+      - 'main'
+    paths: 
+      - 'stacks/**'
+
+jobs:
+  state-plan:
+    runs-on: self-hosted
+    environment: devops
+    defaults:
+      run:
+        shell: bash
+        working-directory: stacks
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v3
+
+      - name: aws
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          # role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: us-east-2
+
+      - name: terraform
+        uses: hashicorp/setup-terraform@v1.2.1
+        with:
+          terraform_version: 1.2.6
+
+      # - name: fmt
+      #   id: fmt
+      #   run: terraform fmt -check
+      #   continue-on-error: true
+
+      - name: init
+        id: init
+        run: terraform init
+
+      - name: validate
+        id: validate
+        run: terraform validate -no-color
+
+      - name: plan
+        id: plan
+        run: terraform plan -no-color
