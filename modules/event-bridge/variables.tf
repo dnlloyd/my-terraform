@@ -1,82 +1,8 @@
-variable "create" {
-  description = "Controls whether resources should be created"
-  type        = bool
-  default     = true
-}
-
-variable "create_role" {
-  description = "Controls whether IAM roles should be created"
-  type        = bool
-  default     = true
-}
-
-variable "append_rule_postfix" {
-  description = "Controls whether to append '-rule' to the name of the rule"
-  type        = bool
-  default     = true
-}
-
-variable "append_connection_postfix" {
-  description = "Controls whether to append '-connection' to the name of the connection"
-  type        = bool
-  default     = true
-}
-
-variable "append_destination_postfix" {
-  description = "Controls whether to append '-destination' to the name of the destination"
-  type        = bool
-  default     = true
-}
-
 variable "create_bus" {
   description = "Controls whether EventBridge Bus resource should be created"
   type        = bool
   default     = true
 }
-
-variable "create_rules" {
-  description = "Controls whether EventBridge Rule resources should be created"
-  type        = bool
-  default     = true
-}
-
-variable "create_targets" {
-  description = "Controls whether EventBridge Target resources should be created"
-  type        = bool
-  default     = true
-}
-
-variable "create_permissions" {
-  description = "Controls whether EventBridge Permission resources should be created"
-  type        = bool
-  default     = true
-}
-
-variable "create_archives" {
-  description = "Controls whether EventBridge Archive resources should be created"
-  type        = bool
-  default     = false
-}
-
-variable "create_connections" {
-  description = "Controls whether EventBridge Connection resources should be created"
-  type        = bool
-  default     = false
-}
-
-variable "create_api_destinations" {
-  description = "Controls whether EventBridge Destination resources should be created"
-  type        = bool
-  default     = false
-}
-
-variable "create_schemas_discoverer" {
-  description = "Controls whether default schemas discoverer should be created"
-  type        = bool
-  default     = false
-}
-
-#######################
 
 variable "bus_name" {
   description = "A unique name for your EventBridge Bus"
@@ -84,74 +10,10 @@ variable "bus_name" {
   default     = "default"
 }
 
-variable "schemas_discoverer_description" {
-  description = "Default schemas discoverer description"
-  type        = string
-  default     = "Auto schemas discoverer event"
-}
-
-variable "rules" {
-  description = "A map of objects with EventBridge Rule definitions."
-  type        = map(any)
-  default     = {}
-}
-
-variable "targets" {
-  description = "A map of objects with EventBridge Target definitions."
-  type        = any
-  default     = {}
-}
-
-variable "archives" {
-  description = "A map of objects with the EventBridge Archive definitions."
-  type        = map(any)
-  default     = {}
-}
-
-variable "permissions" {
-  description = "A map of objects with EventBridge Permission definitions."
-  type        = map(any)
-  default     = {}
-}
-
-variable "connections" {
-  description = "A map of objects with EventBridge Connection definitions."
-  type        = any
-  default     = {}
-}
-
-variable "api_destinations" {
-  description = "A map of objects with EventBridge Destination definitions."
-  type        = map(any)
-  default     = {}
-}
-
-variable "tags" {
-  description = "A map of tags to assign to resources."
-  type        = map(string)
-  default     = {}
-}
-
-######
-# IAM
-######
-
-variable "role_name" {
-  description = "Name of IAM role to use for EventBridge"
-  type        = string
-  default     = null
-}
-
-variable "role_description" {
-  description = "Description of IAM role to use for EventBridge"
-  type        = string
-  default     = null
-}
-
-variable "role_path" {
-  description = "Path of IAM role to use for EventBridge"
-  type        = string
-  default     = null
+variable "create_role" {
+  description = "Controls whether IAM roles should be created"
+  type        = bool
+  default     = true
 }
 
 variable "role_force_detach_policies" {
@@ -172,30 +34,65 @@ variable "role_tags" {
   default     = {}
 }
 
-###########
-# Policies
-###########
+variable "create_rules" {
+  description = "Controls whether EventBridge Rule resources should be created"
+  type        = bool
+  default     = true
+}
 
-variable "attach_kinesis_policy" {
-  description = "Controls whether the Kinesis policy should be added to IAM role for EventBridge Target"
+variable "rules" {
+  description = "A map of objects with EventBridge Rule definitions."
+  type        = map(any)
+  default     = {}
+}
+
+variable "create_targets" {
+  description = "Controls whether EventBridge Target resources should be created"
+  type        = bool
+  default     = true
+}
+
+variable "targets" {
+  description = "A map of objects with EventBridge Target definitions."
+  type        = any
+  default     = {}
+}
+
+
+variable "create_archives" {
+  description = "Controls whether EventBridge Archive resources should be created"
   type        = bool
   default     = false
 }
 
-variable "attach_kinesis_firehose_policy" {
-  description = "Controls whether the Kinesis Firehose policy should be added to IAM role for EventBridge Target"
+variable "archives" {
+  description = "A map of objects with the EventBridge Archive definitions."
+  type        = map(any)
+  default     = {}
+}
+
+variable "create_schemas_discoverer" {
+  description = "Controls whether default schemas discoverer should be created"
   type        = bool
   default     = false
 }
 
+variable "schemas_discoverer_description" {
+  description = "Default schemas discoverer description"
+  type        = string
+  default     = "Auto schemas discoverer event"
+}
+
+# Cross account access
+variable "cross_account_ids" {
+  description = "The account IDs to allow access to the event bus"
+  type        = list(string)
+  default     = []
+}
+
+# Canned policies
 variable "attach_sqs_policy" {
   description = "Controls whether the SQS policy should be added to IAM role for EventBridge Target"
-  type        = bool
-  default     = false
-}
-
-variable "attach_ecs_policy" {
-  description = "Controls whether the ECS policy should be added to IAM role for EventBridge Target"
   type        = bool
   default     = false
 }
@@ -218,38 +115,14 @@ variable "attach_cloudwatch_policy" {
   default     = false
 }
 
-variable "attach_api_destination_policy" {
-  description = "Controls whether the API Destination policy should be added to IAM role for EventBridge Target"
-  type        = bool
-  default     = false
-}
-
 variable "attach_tracing_policy" {
   description = "Controls whether X-Ray tracing policy should be added to IAM role for EventBridge"
   type        = bool
   default     = false
 }
 
-variable "kinesis_target_arns" {
-  description = "The Amazon Resource Name (ARN) of the Kinesis Streams you want to use as EventBridge targets"
-  type        = list(string)
-  default     = []
-}
-
-variable "kinesis_firehose_target_arns" {
-  description = "The Amazon Resource Name (ARN) of the Kinesis Firehose Delivery Streams you want to use as EventBridge targets"
-  type        = list(string)
-  default     = []
-}
-
 variable "sqs_target_arns" {
   description = "The Amazon Resource Name (ARN) of the AWS SQS Queues you want to use as EventBridge targets"
-  type        = list(string)
-  default     = []
-}
-
-variable "ecs_target_arns" {
-  description = "The Amazon Resource Name (ARN) of the AWS ECS Tasks you want to use as EventBridge targets"
   type        = list(string)
   default     = []
 }
@@ -272,50 +145,17 @@ variable "cloudwatch_target_arns" {
   default     = []
 }
 
-##########################
-# Various custom policies
-##########################
-
-variable "attach_policy_json" {
-  description = "Controls whether policy_json should be added to IAM role"
-  type        = bool
-  default     = false
+# Additional policies
+variable "additional_policy_json" {
+  description = "An additional policy document as JSON to attach to IAM role"
+  type        = string
+  default     = null
 }
 
-variable "attach_policy_jsons" {
-  description = "Controls whether policy_jsons should be added to IAM role"
-  type        = bool
-  default     = false
-}
-
-variable "attach_policy" {
-  description = "Controls whether policy should be added to IAM role"
-  type        = bool
-  default     = false
-}
-
-variable "attach_policies" {
-  description = "Controls whether list of policies should be added to IAM role"
-  type        = bool
-  default     = false
-}
-
-variable "number_of_policy_jsons" {
-  description = "Number of policies JSON to attach to IAM role"
-  type        = number
-  default     = 0
-}
-
-variable "number_of_policies" {
-  description = "Number of policies to attach to IAM role"
-  type        = number
-  default     = 0
-}
-
-variable "attach_policy_statements" {
-  description = "Controls whether policy_statements should be added to IAM role"
-  type        = bool
-  default     = false
+variable "additional_policies" {
+  description = "List of policy statements ARN to attach to IAM role"
+  type        = list(string)
+  default     = null
 }
 
 variable "trusted_entities" {
@@ -324,32 +164,52 @@ variable "trusted_entities" {
   default     = []
 }
 
-variable "policy_json" {
-  description = "An additional policy document as JSON to attach to IAM role"
+variable "purpose" {
   type        = string
-  default     = null
+  description = "What is the resource used for"
 }
 
-variable "policy_jsons" {
-  description = "List of additional policy documents as JSON to attach to IAM role"
-  type        = list(string)
-  default     = []
-}
-
-variable "policy" {
-  description = "An additional policy document ARN to attach to IAM role"
+variable "itcontact" {
   type        = string
-  default     = null
+  description = "Email of group responsible for resource"
 }
 
-variable "policies" {
-  description = "List of policy statements ARN to attach to IAM role"
-  type        = list(string)
-  default     = []
+variable "costcenter" {
+  type        = string
+  description = "Seven digits number of the Cost Center for resource ownership"
+  validation {
+    condition     = length(var.costcenter) == 7
+    error_message = "Valid values for variable removeondate must be a seven digits number."
+  }
 }
 
-variable "policy_statements" {
-  description = "Map of dynamic policy statements to attach to IAM role"
-  type        = any
+variable "businessline" {
+  type        = string
+  description = "Business Line responsible for resource ownership"
+}
+
+variable "environment" {
+  type        = string
+  description = "Type of data stored in the resource. Allowed values are: Production, Disaster Recovery, Test QA, Development,Vendor Provided, Scripts"
+  validation {
+    condition     = contains(["Production", "Disaster Recovery", "Test QA", "Development", "Vendor Provided", "Scripts"], var.environment)
+    error_message = "Valid values for variable environment: Production, Disaster Recovery, Test QA, Development,Vendor Provided, Scripts."
+  }
+}
+
+variable "additional_tags" {
+  description = "A map of additional tags. Required tags are set as mandatory variables"
+  type        = map(any)
   default     = {}
+}
+
+locals {
+  tags = {
+    Purpose            = var.purpose,
+    ITContact          = var.itcontact,
+    CostCenter         = var.costcenter,
+    BusinessLine       = var.businessline,
+    Environment        = var.environment,
+    ManagedByTerraform = true
+  }
 }

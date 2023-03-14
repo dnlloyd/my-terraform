@@ -1,12 +1,5 @@
 provider "aws" {
-  region = "ap-southeast-1"
-
-  # Make it faster by skipping something
-  skip_get_ec2_platforms      = true
-  skip_metadata_api_check     = true
-  skip_region_validation      = true
-  skip_credentials_validation = true
-  skip_requesting_account_id  = true
+  region = "us-east-1"
 }
 
 module "eventbridge" {
@@ -16,29 +9,32 @@ module "eventbridge" {
 
   rules = {
     product_create = {
-      description   = "product create rule",
-      event_pattern = jsonencode({ "source" : ["product.create"] })
+      description   = "Mock rule",
+      event_pattern = jsonencode({ "source" : ["my.test"] })
     }
   }
 
   targets = {
     product_create = [
       {
-        arn  = aws_sqs_queue.products.arn
-        name = "send-product-to-sqs"
+        arn  = aws_sqs_queue.mock.arn
+        name = "send-test-to-sqs"
       }
     ]
   }
+
+  purpose             = "test"
+  itcontact           = "test"
+  costcenter          = "1234567"
+  businessline        = "test"
+  environment         = "Development"
 }
 
-##################
-# Extra resources
-##################
-
+# Mock resources
 resource "random_pet" "this" {
   length = 2
 }
 
-resource "aws_sqs_queue" "products" {
+resource "aws_sqs_queue" "mock" {
   name = random_pet.this.id
 }

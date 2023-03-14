@@ -3,7 +3,7 @@ locals {
     for index, rule in var.rules :
     merge(rule, {
       "name" = index
-      "Name" = var.append_rule_postfix ? "${replace(index, "_", "-")}-rule" : index
+      "Name" = index
     })
   ])
   eventbridge_targets = flatten([
@@ -11,50 +11,36 @@ locals {
       for target in var.targets[index] :
       merge(target, {
         "rule" = index
-        "Name" = var.append_rule_postfix ? "${replace(index, "_", "-")}-rule" : index
+        "Name" = index
       })
     ] if length(var.targets) != 0
-  ])
-  eventbridge_connections = flatten([
-    for index, conn in var.connections :
-    merge(conn, {
-      "name" = index
-      "Name" = var.append_connection_postfix ? "${replace(index, "_", "-")}-connection" : index
-    })
-  ])
-  eventbridge_api_destinations = flatten([
-    for index, dest in var.api_destinations :
-    merge(dest, {
-      "name" = index
-      "Name" = var.append_destination_postfix ? "${replace(index, "_", "-")}-destination" : index
-    })
   ])
 }
 
 data "aws_cloudwatch_event_bus" "this" {
-  count = (var.create && var.create_bus) || (var.bus_name == "") ? 0 : 1
+  count = (var.create_bus) ? 0 : 1
 
   name = var.bus_name
 }
 
 resource "aws_cloudwatch_event_bus" "this" {
-  count = var.create && var.create_bus ? 1 : 0
+  count = var.create_bus ? 1 : 0
 
   name = var.bus_name
-  tags = var.tags
+  tags = merge(var.additional_tags, local.tags)
 }
 
 resource "aws_schemas_discoverer" "this" {
-  count = var.create && var.create_schemas_discoverer ? 1 : 0
+  count = var.create_schemas_discoverer ? 1 : 0
 
   source_arn  = var.create_bus ? aws_cloudwatch_event_bus.this[0].arn : data.aws_cloudwatch_event_bus.this[0].arn
   description = var.schemas_discoverer_description
 
-  tags = var.tags
+  tags = merge(var.additional_tags, local.tags)
 }
 
 resource "aws_cloudwatch_event_rule" "this" {
-  for_each = { for k, v in local.eventbridge_rules : v.name => v if var.create && var.create_rules }
+  for_each = { for k, v in local.eventbridge_rules : v.name => v if var.create_rules }
 
   name        = each.value.Name
   name_prefix = lookup(each.value, "name_prefix", null)
@@ -67,18 +53,18 @@ resource "aws_cloudwatch_event_rule" "this" {
   schedule_expression = lookup(each.value, "schedule_expression", null)
   role_arn            = lookup(each.value, "role_arn", false) ? aws_iam_role.eventbridge[0].arn : null
 
-  tags = merge(var.tags, {
+  tags = merge(local.tags, var.additional_tags, {
     Name = each.value.Name
   })
 }
 
 resource "aws_cloudwatch_event_target" "this" {
-  for_each = { for k, v in local.eventbridge_targets : v.name => v if var.create && var.create_targets }
+  for_each = { for k, v in local.eventbridge_targets : v.name => v if var.create_targets }
 
   event_bus_name = var.create_bus ? aws_cloudwatch_event_bus.this[0].name : var.bus_name
 
   rule = each.value.Name
-  arn  = lookup(each.value, "destination", null) != null ? aws_cloudwatch_event_api_destination.this[each.value.destination].arn : each.value.arn
+  arn  = each.value.arn
 
   role_arn = can(length(each.value.attach_role_arn) > 0) ? each.value.attach_role_arn : (try(each.value.attach_role_arn, null) == true ? aws_iam_role.eventbridge[0].arn : null)
 
@@ -92,53 +78,6 @@ resource "aws_cloudwatch_event_target" "this" {
     content {
       key    = run_command_targets.value.key
       values = run_command_targets.value.values
-    }
-  }
-
-  dynamic "ecs_target" {
-    for_each = lookup(each.value, "ecs_target", null) != null ? [
-      each.value.ecs_target
-    ] : []
-
-    content {
-      group               = lookup(ecs_target.value, "group", null)
-      launch_type         = lookup(ecs_target.value, "launch_type", null)
-      platform_version    = lookup(ecs_target.value, "platform_version", null)
-      task_count          = lookup(ecs_target.value, "task_count", null)
-      task_definition_arn = lookup(ecs_target.value, "task_definition_arn", null)
-
-      dynamic "network_configuration" {
-        for_each = lookup(ecs_target.value, "network_configuration", null) != null ? [
-          ecs_target.value.network_configuration
-        ] : []
-
-        content {
-          subnets          = lookup(network_configuration.value, "subnets", null)
-          security_groups  = lookup(network_configuration.value, "security_groups", null)
-          assign_public_ip = lookup(network_configuration.value, "assign_public_ip", null)
-        }
-      }
-    }
-  }
-
-  dynamic "batch_target" {
-    for_each = lookup(each.value, "batch_target", null) != null ? [
-      each.value.batch_target
-    ] : []
-
-    content {
-      job_definition = batch_target.value.job_definition
-      job_name       = batch_target.value.job_name
-      array_size     = lookup(batch_target.value, "array_size", null)
-      job_attempts   = lookup(batch_target.value, "job_attempts", null)
-    }
-  }
-
-  dynamic "kinesis_target" {
-    for_each = lookup(each.value, "kinesis_target", null) != null ? [true] : []
-
-    content {
-      partition_key_path = lookup(kinesis_target.value, "partition_key_path", null)
     }
   }
 
@@ -196,7 +135,7 @@ resource "aws_cloudwatch_event_target" "this" {
 }
 
 resource "aws_cloudwatch_event_archive" "this" {
-  for_each = var.create && var.create_archives ? var.archives : {}
+  for_each = var.create_archives ? var.archives : {}
 
   name             = each.key
   event_source_arn = try(each.value["event_source_arn"], aws_cloudwatch_event_bus.this[0].arn)
@@ -207,154 +146,11 @@ resource "aws_cloudwatch_event_archive" "this" {
 }
 
 resource "aws_cloudwatch_event_permission" "this" {
-  for_each = var.create && var.create_permissions ? var.permissions : {}
+  for_each = toset(var.cross_account_ids)
 
-  principal    = compact(split(" ", each.key))[0]
-  statement_id = compact(split(" ", each.key))[1]
+  principal    = each.key
+  statement_id = each.key
 
-  action         = lookup(each.value, "action", null)
-  event_bus_name = try(each.value["event_bus_name"], aws_cloudwatch_event_bus.this[0].name, var.bus_name, null)
-}
-
-resource "aws_cloudwatch_event_connection" "this" {
-  for_each = { for k, v in local.eventbridge_connections : v.name => v if var.create && var.create_connections }
-
-  name               = each.value.Name
-  description        = lookup(each.value, "description", null)
-  authorization_type = each.value.authorization_type
-
-  dynamic "auth_parameters" {
-    for_each = [each.value.auth_parameters]
-
-    content {
-      dynamic "api_key" {
-        for_each = lookup(each.value.auth_parameters, "api_key", null) != null ? [
-          each.value.auth_parameters.api_key
-        ] : []
-
-        content {
-          key   = api_key.value.key
-          value = api_key.value.value
-        }
-      }
-
-      dynamic "basic" {
-        for_each = lookup(each.value.auth_parameters, "basic", null) != null ? [
-          each.value.auth_parameters.basic
-        ] : []
-
-        content {
-          username = basic.value.username
-          password = basic.value.password
-        }
-      }
-
-      dynamic "oauth" {
-        for_each = lookup(each.value.auth_parameters, "oauth", null) != null ? [
-          each.value.auth_parameters.oauth
-        ] : []
-
-        content {
-          authorization_endpoint = oauth.value.authorization_endpoint
-          http_method            = oauth.value.http_method
-
-          dynamic "client_parameters" {
-            for_each = [each.value.auth_parameters.oauth.client_parameters]
-
-            content {
-              client_id     = client_parameters.value.client_id
-              client_secret = client_parameters.value.client_secret
-            }
-          }
-
-          dynamic "oauth_http_parameters" {
-            for_each = lookup(each.value.auth_parameters.oauth, "oauth_http_parameters", null) != null ? [
-              each.value.auth_parameters.oauth.oauth_http_parameters
-            ] : []
-
-            content {
-              dynamic "body" {
-                for_each = lookup(each.value.auth_parameters.oauth.oauth_http_parameters, "body", [])
-
-                content {
-                  key             = body.value.key
-                  value           = body.value.value
-                  is_value_secret = lookup(body.value, "is_value_secret", null)
-                }
-              }
-
-              dynamic "header" {
-                for_each = lookup(each.value.auth_parameters.oauth.oauth_http_parameters, "header", [])
-
-                content {
-                  key             = header.value.key
-                  value           = header.value.value
-                  is_value_secret = lookup(header.value, "is_value_secret", null)
-                }
-              }
-
-              dynamic "query_string" {
-                for_each = lookup(each.value.auth_parameters.oauth.oauth_http_parameters, "query_string", [])
-
-                content {
-                  key             = query_string.value.key
-                  value           = query_string.value.value
-                  is_value_secret = lookup(query_string.value, "is_value_secret", null)
-                }
-              }
-            }
-          }
-        }
-      }
-
-      dynamic "invocation_http_parameters" {
-        for_each = lookup(each.value.auth_parameters, "invocation_http_parameters", null) != null ? [
-          each.value.auth_parameters.invocation_http_parameters
-        ] : []
-
-        content {
-          dynamic "body" {
-            for_each = lookup(each.value.auth_parameters.invocation_http_parameters, "body", [])
-
-            content {
-              key             = body.value.key
-              value           = body.value.value
-              is_value_secret = lookup(body.value, "is_value_secret", null)
-            }
-          }
-
-          dynamic "header" {
-            for_each = lookup(each.value.auth_parameters.invocation_http_parameters, "header", [])
-
-            content {
-              key             = header.value.key
-              value           = header.value.value
-              is_value_secret = lookup(header.value, "is_value_secret", null)
-            }
-          }
-
-          dynamic "query_string" {
-            for_each = lookup(each.value.auth_parameters.invocation_http_parameters, "query_string", [])
-
-            content {
-              key             = query_string.value.key
-              value           = query_string.value.value
-              is_value_secret = lookup(query_string.value, "is_value_secret", null)
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-resource "aws_cloudwatch_event_api_destination" "this" {
-  for_each = { for k, v in local.eventbridge_api_destinations : v.name => v if var.create && var.create_api_destinations }
-
-  name                             = each.value.Name
-  description                      = lookup(each.value, "description", null)
-  invocation_endpoint              = each.value.invocation_endpoint
-  http_method                      = each.value.http_method
-  invocation_rate_limit_per_second = lookup(each.value, "invocation_rate_limit_per_second", null)
-  connection_arn                   = aws_cloudwatch_event_connection.this[each.value.name].arn
+  action         = "events:PutEvents"
+  event_bus_name = var.create_bus ? aws_cloudwatch_event_bus.this[0].name : data.aws_cloudwatch_event_bus.this[0].name
 }

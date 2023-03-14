@@ -1,18 +1,6 @@
 # AWS EventBridge Terraform module
 
-Terraform module to create EventBridge resources.
-
-## Supported Features
-
-- Creates AWS EventBridge Resources (bus, rules, targets, permissions, connections, destinations)
-- Attach resources to an existing EventBridge bus
-- Support AWS EventBridge Archives and Replays
-- Conditional creation for many types of resources
-- Support IAM policy attachments and various ways to create and attach additional policies
-
-## Feature Roadmap
-
-- Support monitoring usage with Cloudwatch Metrics
+Terraform module to create EventBridge resources
 
 ## Usage
 

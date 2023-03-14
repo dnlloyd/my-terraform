@@ -22,31 +22,25 @@ output "eventbridge_permission_ids" {
 }
 
 # EventBridge Connection
-output "eventbridge_connection_ids" {
-  description = "The EventBridge Connection IDs created"
-  value       = { for k, v in aws_cloudwatch_event_connection.this : k => v.id }
-}
+# output "eventbridge_connection_ids" {
+#   description = "The EventBridge Connection IDs created"
+#   value       = { for k, v in aws_cloudwatch_event_connection.this : k => v.id }
+# }
 
-output "eventbridge_connection_arns" {
-  description = "The EventBridge Connection Arns created"
-  value       = { for k, v in aws_cloudwatch_event_connection.this : k => v.arn }
-}
-
-# EventBridge Destination
-output "eventbridge_api_destination_arns" {
-  description = "The EventBridge API Destination ARNs created"
-  value       = { for k, v in aws_cloudwatch_event_api_destination.this : k => v.arn }
-}
+# output "eventbridge_connection_arns" {
+#   description = "The EventBridge Connection Arns created"
+#   value       = { for k, v in aws_cloudwatch_event_connection.this : k => v.arn }
+# }
 
 # EventBridge Rule
 output "eventbridge_rule_ids" {
   description = "The EventBridge Rule IDs created"
-  value       = { for k in sort(keys(var.rules)) : k => try(aws_cloudwatch_event_rule.this[k].id, null) if var.create && var.create_rules }
+  value       = { for k in sort(keys(var.rules)) : k => try(aws_cloudwatch_event_rule.this[k].id, null) if var.create_rules }
 }
 
 output "eventbridge_rule_arns" {
   description = "The EventBridge Rule ARNs created"
-  value       = { for k in sort(keys(var.rules)) : k => try(aws_cloudwatch_event_rule.this[k].arn, null) if var.create && var.create_rules }
+  value       = { for k in sort(keys(var.rules)) : k => try(aws_cloudwatch_event_rule.this[k].arn, null) if var.create_rules }
 }
 
 # IAM Role
@@ -55,7 +49,7 @@ output "eventbridge_role_arn" {
   value       = try(aws_iam_role.eventbridge[0].arn, "")
 }
 
-output "eventbridge_role_name" {
-  description = "The name of the IAM role created for EventBridge"
-  value       = try(aws_iam_role.eventbridge[0].name, "")
-}
+# output "eventbridge_role_name" {
+#   description = "The name of the IAM role created for EventBridge"
+#   value       = try(aws_iam_role.eventbridge[0].name, "")
+# }
