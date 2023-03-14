@@ -21,17 +21,6 @@ output "eventbridge_permission_ids" {
   value       = { for k, v in aws_cloudwatch_event_permission.this : k => v.id }
 }
 
-# EventBridge Connection
-# output "eventbridge_connection_ids" {
-#   description = "The EventBridge Connection IDs created"
-#   value       = { for k, v in aws_cloudwatch_event_connection.this : k => v.id }
-# }
-
-# output "eventbridge_connection_arns" {
-#   description = "The EventBridge Connection Arns created"
-#   value       = { for k, v in aws_cloudwatch_event_connection.this : k => v.arn }
-# }
-
 # EventBridge Rule
 output "eventbridge_rule_ids" {
   description = "The EventBridge Rule IDs created"
@@ -48,8 +37,3 @@ output "eventbridge_role_arn" {
   description = "The ARN of the IAM role created for EventBridge"
   value       = try(aws_iam_role.eventbridge[0].arn, "")
 }
-
-# output "eventbridge_role_name" {
-#   description = "The name of the IAM role created for EventBridge"
-#   value       = try(aws_iam_role.eventbridge[0].name, "")
-# }

@@ -23,11 +23,11 @@ module "eventbridge" {
     ]
   }
 
-  purpose             = "test"
-  itcontact           = "test"
-  costcenter          = "1234567"
-  businessline        = "test"
-  environment         = "Development"
+  purpose      = "test"
+  itcontact    = "test"
+  costcenter   = "1234567"
+  businessline = "test"
+  environment  = "Development"
 }
 
 # Mock resources
