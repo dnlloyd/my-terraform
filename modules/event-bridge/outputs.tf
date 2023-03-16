@@ -6,19 +6,13 @@ output "eventbridge_bus_name" {
 
 output "eventbridge_bus_arn" {
   description = "The EventBridge Bus Arn"
-  value       = try(aws_cloudwatch_event_bus.this[0].arn, "")
+  value       = try(aws_cloudwatch_event_bus.event_bus[0].arn, "")
 }
 
 # EventBridge Archive
 output "eventbridge_archive_arns" {
   description = "The EventBridge Archive Arns created"
   value       = { for v in aws_cloudwatch_event_archive.this : v.name => v.arn }
-}
-
-# EventBridge Permission
-output "eventbridge_permission_ids" {
-  description = "The EventBridge Permission Arns created"
-  value       = { for k, v in aws_cloudwatch_event_permission.this : k => v.id }
 }
 
 # EventBridge Rule
@@ -30,10 +24,4 @@ output "eventbridge_rule_ids" {
 output "eventbridge_rule_arns" {
   description = "The EventBridge Rule ARNs created"
   value       = { for k in sort(keys(var.rules)) : k => try(aws_cloudwatch_event_rule.this[k].arn, null) if var.create_rules }
-}
-
-# IAM Role
-output "eventbridge_role_arn" {
-  description = "The ARN of the IAM role created for EventBridge"
-  value       = try(aws_iam_role.eventbridge[0].arn, "")
 }

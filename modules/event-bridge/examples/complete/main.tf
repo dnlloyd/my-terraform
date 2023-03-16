@@ -7,12 +7,24 @@ module "eventbridge" {
 
   bus_name = "my-bus"
 
-  cross_account_ids = ["123456789012", "210987654321"]
+  create_event_bus_policy = true
+  event_bus_policy = jsonencode({
+    "Version": "2012-10-17",
+    "Statement": [    
+      {
+    
+        "Sid": "allow_account_to_put_events",
+        "Effect": "Allow",
+        "Principal": {
+          "AWS": "458891109543"
+        },
+        "Action": "events:PutEvents",
+        "Resource": "${module.eventbridge.eventbridge_bus_arn}"
+      }
+    ]
+  })
 
-  attach_sqs_policy = true
   sqs_target_arns   = [aws_sqs_queue.queue.arn]
-
-  attach_cloudwatch_policy = true
   cloudwatch_target_arns   = [aws_cloudwatch_log_group.this.arn]
 
   rules = {
@@ -35,35 +47,6 @@ module "eventbridge" {
       }
     ]
   }
-
-  additional_policy_json = jsonencode({
-    "Version" : "2012-10-17",
-    "Statement" : [
-      {
-        "Effect" : "Allow",
-        "Action" : [
-          "xray:GetSamplingStatisticSummaries"
-        ],
-        "Resource" : ["*"]
-      },
-      {
-        "Effect" : "Allow",
-        "Action" : [
-          "xray:GetSamplingRules"
-        ],
-        "Resource" : ["*"]
-      },
-      {
-        "Effect" : "Allow",
-        "Action" : [
-          "xray:ListResourcePolicies"
-        ],
-        "Resource" : ["*"]
-      }
-    ]
-  })
-
-  additional_policies = ["arn:aws:iam::aws:policy/AWSXrayReadOnlyAccess"]
 
   purpose      = "test"
   itcontact    = "test"

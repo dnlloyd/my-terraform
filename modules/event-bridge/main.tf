@@ -17,13 +17,13 @@ locals {
   ])
 }
 
-data "aws_cloudwatch_event_bus" "this" {
+data "aws_cloudwatch_event_bus" "event_bus" {
   count = (var.create_bus) ? 0 : 1
 
   name = var.bus_name
 }
 
-resource "aws_cloudwatch_event_bus" "this" {
+resource "aws_cloudwatch_event_bus" "event_bus" {
   count = var.create_bus ? 1 : 0
 
   name = var.bus_name
@@ -33,7 +33,7 @@ resource "aws_cloudwatch_event_bus" "this" {
 resource "aws_schemas_discoverer" "this" {
   count = var.create_schemas_discoverer ? 1 : 0
 
-  source_arn  = var.create_bus ? aws_cloudwatch_event_bus.this[0].arn : data.aws_cloudwatch_event_bus.this[0].arn
+  source_arn  = var.create_bus ? aws_cloudwatch_event_bus.event_bus[0].arn : data.aws_cloudwatch_event_bus.event_bus[0].arn
   description = var.schemas_discoverer_description
 
   tags = merge(var.additional_tags, local.tags)
@@ -45,13 +45,13 @@ resource "aws_cloudwatch_event_rule" "this" {
   name        = each.value.Name
   name_prefix = lookup(each.value, "name_prefix", null)
 
-  event_bus_name = var.create_bus ? aws_cloudwatch_event_bus.this[0].name : var.bus_name
+  event_bus_name = var.create_bus ? aws_cloudwatch_event_bus.event_bus[0].name : var.bus_name
 
   description         = lookup(each.value, "description", null)
   is_enabled          = lookup(each.value, "enabled", true)
   event_pattern       = lookup(each.value, "event_pattern", null)
   schedule_expression = lookup(each.value, "schedule_expression", null)
-  role_arn            = lookup(each.value, "role_arn", false) ? aws_iam_role.eventbridge[0].arn : null
+  role_arn            = lookup(each.value, "role_arn", null)
 
   tags = merge(local.tags, var.additional_tags, {
     Name = each.value.Name
@@ -61,12 +61,12 @@ resource "aws_cloudwatch_event_rule" "this" {
 resource "aws_cloudwatch_event_target" "this" {
   for_each = { for k, v in local.eventbridge_targets : v.name => v if var.create_targets }
 
-  event_bus_name = var.create_bus ? aws_cloudwatch_event_bus.this[0].name : var.bus_name
+  event_bus_name = var.create_bus ? aws_cloudwatch_event_bus.event_bus[0].name : var.bus_name
 
   rule = each.value.Name
   arn  = each.value.arn
 
-  role_arn = can(length(each.value.attach_role_arn) > 0) ? each.value.attach_role_arn : (try(each.value.attach_role_arn, null) == true ? aws_iam_role.eventbridge[0].arn : null)
+  role_arn   = lookup(each.value, "role_arn", null)
 
   target_id  = lookup(each.value, "target_id", null)
   input      = lookup(each.value, "input", null)
@@ -138,19 +138,16 @@ resource "aws_cloudwatch_event_archive" "this" {
   for_each = var.create_archives ? var.archives : {}
 
   name             = each.key
-  event_source_arn = try(each.value["event_source_arn"], aws_cloudwatch_event_bus.this[0].arn)
+  event_source_arn = try(each.value["event_source_arn"], aws_cloudwatch_event_bus.event_bus[0].arn)
 
   description    = lookup(each.value, "description", null)
   event_pattern  = lookup(each.value, "event_pattern", null)
   retention_days = lookup(each.value, "retention_days", null)
 }
 
-resource "aws_cloudwatch_event_permission" "this" {
-  for_each = toset(var.cross_account_ids)
+resource "aws_cloudwatch_event_bus_policy" "this" {
+  count = var.create_event_bus_policy ? 1 : 0
 
-  principal    = each.key
-  statement_id = each.key
-
-  action         = "events:PutEvents"
-  event_bus_name = var.create_bus ? aws_cloudwatch_event_bus.this[0].name : data.aws_cloudwatch_event_bus.this[0].name
+  policy         = var.event_bus_policy
+  event_bus_name = aws_cloudwatch_event_bus.event_bus[0].name
 }

@@ -10,30 +10,6 @@ variable "bus_name" {
   default     = "default"
 }
 
-variable "create_role" {
-  description = "Controls whether IAM roles should be created"
-  type        = bool
-  default     = true
-}
-
-variable "role_force_detach_policies" {
-  description = "Specifies to force detaching any policies the IAM role has before destroying it."
-  type        = bool
-  default     = true
-}
-
-variable "role_permissions_boundary" {
-  description = "The ARN of the policy that is used to set the permissions boundary for the IAM role used by EventBridge"
-  type        = string
-  default     = null
-}
-
-variable "role_tags" {
-  description = "A map of tags to assign to IAM role"
-  type        = map(string)
-  default     = {}
-}
-
 variable "create_rules" {
   description = "Controls whether EventBridge Rule resources should be created"
   type        = bool
@@ -83,42 +59,16 @@ variable "schemas_discoverer_description" {
   default     = "Auto schemas discoverer event"
 }
 
-# Cross account access
-variable "cross_account_ids" {
-  description = "The account IDs to allow access to the event bus"
-  type        = list(string)
-  default     = []
-}
-
-# Canned policies
-variable "attach_sqs_policy" {
-  description = "Controls whether the SQS policy should be added to IAM role for EventBridge Target"
+variable "create_event_bus_policy" {
+  description = "Controls whether EventBridge bus policy should be created"
   type        = bool
   default     = false
 }
 
-variable "attach_lambda_policy" {
-  description = "Controls whether the Lambda Function policy should be added to IAM role for EventBridge Target"
-  type        = bool
-  default     = false
-}
-
-variable "attach_sfn_policy" {
-  description = "Controls whether the StepFunction policy should be added to IAM role for EventBridge Target"
-  type        = bool
-  default     = false
-}
-
-variable "attach_cloudwatch_policy" {
-  description = "Controls whether the Cloudwatch policy should be added to IAM role for EventBridge Target"
-  type        = bool
-  default     = false
-}
-
-variable "attach_tracing_policy" {
-  description = "Controls whether X-Ray tracing policy should be added to IAM role for EventBridge"
-  type        = bool
-  default     = false
+variable "event_bus_policy" {
+  description = "IAM policy to support cross-account events"
+  type        = string
+  default     = null
 }
 
 variable "sqs_target_arns" {
@@ -143,19 +93,6 @@ variable "cloudwatch_target_arns" {
   description = "The Amazon Resource Name (ARN) of the Cloudwatch Log Streams you want to use as EventBridge targets"
   type        = list(string)
   default     = []
-}
-
-# Additional policies
-variable "additional_policy_json" {
-  description = "An additional policy document as JSON to attach to IAM role"
-  type        = string
-  default     = null
-}
-
-variable "additional_policies" {
-  description = "List of policy statements ARN to attach to IAM role"
-  type        = list(string)
-  default     = null
 }
 
 variable "trusted_entities" {
