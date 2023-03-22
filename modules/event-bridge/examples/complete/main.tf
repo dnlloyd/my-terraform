@@ -2,11 +2,17 @@ provider "aws" {
   region = "us-east-1"
 }
 
+locals {
+  # List of account IDs that need access to EventBridge bus
+  accounts = ["458891109543"]
+}
+
 module "eventbridge" {
   source = "../../"
 
   bus_name = "my-bus"
 
+  # Allow cross account access
   create_event_bus_policy = true
   event_bus_policy = jsonencode({
     "Version": "2012-10-17",
@@ -16,7 +22,7 @@ module "eventbridge" {
         "Sid": "allow_account_to_put_events",
         "Effect": "Allow",
         "Principal": {
-          "AWS": "458891109543"
+          "AWS": local.accounts
         },
         "Action": "events:PutEvents",
         "Resource": "${module.eventbridge.eventbridge_bus_arn}"

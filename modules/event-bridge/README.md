@@ -8,26 +8,14 @@ Terraform module to create EventBridge resources
 |---------|---------------|
 |  0.1.0  | Initial release |
 
-## Usage
 
-### Example
+## Example module instantiation
 
 ```hcl
 module "eventbridge" {
   source = "../../"
 
   bus_name = "my-bus"
-
-  cross_account_ids = ["123456789012", "210987654321"]
-
-  attach_sfn_policy = true
-  sfn_target_arns   = [var.my_step_function_arn]
-
-  attach_sqs_policy = true
-  sqs_target_arns   = [aws_sqs_queue.queue.arn]
-
-  attach_cloudwatch_policy = true
-  cloudwatch_target_arns   = [aws_cloudwatch_log_group.this.arn]
 
   rules = {
     orders = {
@@ -76,33 +64,6 @@ module "eventbridge" {
     ]
   }
 
-  additional_policy_json = jsonencode({
-    "Version" : "2012-10-17",
-    "Statement" : [
-      {
-        "Effect" : "Allow",
-        "Action" : [
-          "xray:GetSamplingStatisticSummaries"
-        ],
-        "Resource" : ["*"]
-      },
-      {
-        "Effect" : "Allow",
-        "Action" : [
-          "xray:GetSamplingRules"
-        ],
-        "Resource" : ["*"]
-      },
-      {
-        "Effect" : "Allow",
-        "Action" : [
-          "xray:ListResourcePolicies"
-        ],
-        "Resource" : ["*"]
-      }
-    ]
-  })
-
   additional_policies = ["arn:aws:iam::aws:policy/AWSXrayReadOnlyAccess"]
 
   purpose      = "test"
@@ -127,9 +88,32 @@ locals {
 
 ```
 
+## Cross account access
+
+Cross account access is granted via a resource-based policy attached directly to the bus. This policy cannot be defined by an existing policy or role. To create a policy, pass in JSON to the `event_bus_policy` variable.
+
+```
+  create_event_bus_policy = true
+  event_bus_policy = jsonencode({
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+
+        "Sid": "allow_account_to_put_events",
+        "Effect": "Allow",
+        "Principal": {
+          "AWS": local.accounts
+        },
+        "Action": "events:PutEvents",
+        "Resource": "${module.eventbridge.eventbridge_bus_arn}"
+      }
+    ]
+  })
+```
+
 ### Testing cross account access to bus
 
-From an external AWS account:
+(From an external AWS account)
 
 ```
 aws events put-events --entries file://my-event.json
@@ -151,6 +135,28 @@ my-event.json
 ]
 ```
 
+## Access to EventBridge targets
+
+EventBridge targets typically require IAM roles that grant permission to EventBridge to invoke the target.
+
+[https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-use-identity-based.html#eb-target-permissions](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-use-identity-based.html#eb-target-permissions)
+
+**Example for AWS step function target**
+
+If the target is an AWS Step Functions state machine, the role that you specify must include the following policy.
+
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+             "Action": [ "states:StartExecution" ],
+            "Resource": [ "<Step Function Target ARN>" ]
+        }
+     ]
+}
+```
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
