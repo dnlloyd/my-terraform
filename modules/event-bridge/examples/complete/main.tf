@@ -4,7 +4,7 @@ provider "aws" {
 
 locals {
   # List of account IDs that need access to EventBridge bus
-  accounts = ["458891109543"]
+  accounts = ["337364224189"]
 }
 
 module "eventbridge" {
@@ -16,9 +16,9 @@ module "eventbridge" {
   create_event_bus_policy = true
   event_bus_policy = jsonencode({
     "Version": "2012-10-17",
-    "Statement": [    
+    "Statement": [
       {
-    
+
         "Sid": "allow_account_to_put_events",
         "Effect": "Allow",
         "Principal": {
