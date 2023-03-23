@@ -12,16 +12,16 @@ output "eventbridge_bus_arn" {
 # EventBridge Archive
 output "eventbridge_archive_arns" {
   description = "The EventBridge Archive Arns created"
-  value       = { for v in aws_cloudwatch_event_archive.this : v.name => v.arn }
+  value       = { for v in aws_cloudwatch_event_archive.cloudwatch_event_archive : v.name => v.arn }
 }
 
 # EventBridge Rule
 output "eventbridge_rule_ids" {
   description = "The EventBridge Rule IDs created"
-  value       = { for k in sort(keys(var.rules)) : k => try(aws_cloudwatch_event_rule.this[k].id, null) if var.create_rules }
+  value       = { for k in sort(keys(var.rules)) : k => try(aws_cloudwatch_event_rule.cloudwatch_event_rule[k].id, null) if var.create_rules }
 }
 
 output "eventbridge_rule_arns" {
   description = "The EventBridge Rule ARNs created"
-  value       = { for k in sort(keys(var.rules)) : k => try(aws_cloudwatch_event_rule.this[k].arn, null) if var.create_rules }
+  value       = { for k in sort(keys(var.rules)) : k => try(aws_cloudwatch_event_rule.cloudwatch_event_rule[k].arn, null) if var.create_rules }
 }

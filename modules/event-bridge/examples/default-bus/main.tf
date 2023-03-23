@@ -31,10 +31,10 @@ module "eventbridge" {
 }
 
 # Mock resources
-resource "random_pet" "this" {
+resource "random_pet" "random_pet" {
   length = 2
 }
 
 resource "aws_sqs_queue" "mock" {
-  name = random_pet.this.id
+  name = random_pet.random_pet.id
 }

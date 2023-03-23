@@ -31,7 +31,7 @@ module "eventbridge" {
   })
 
   sqs_target_arns   = [aws_sqs_queue.queue.arn]
-  cloudwatch_target_arns   = [aws_cloudwatch_log_group.this.arn]
+  cloudwatch_target_arns   = [aws_cloudwatch_log_group.cloudwatch_log_group.arn]
 
   rules = {
     orders = {
@@ -49,7 +49,7 @@ module "eventbridge" {
       },
       {
         name = "log-orders-to-cloudwatch"
-        arn  = aws_cloudwatch_log_group.this.arn
+        arn  = aws_cloudwatch_log_group.cloudwatch_log_group.arn
       }
     ]
   }
@@ -62,12 +62,12 @@ module "eventbridge" {
 }
 
 # Mock resources
-resource "random_pet" "this" {
+resource "random_pet" "random_pet" {
   length = 2
 }
 
 resource "aws_sqs_queue" "queue" {
-  name = "${random_pet.this.id}-queue"
+  name = "${random_pet.random_pet.id}-queue"
 }
 
 resource "aws_sqs_queue_policy" "queue" {
@@ -91,10 +91,10 @@ data "aws_iam_policy_document" "queue" {
   }
 }
 
-resource "aws_cloudwatch_log_group" "this" {
-  name = "/aws/events/${random_pet.this.id}"
+resource "aws_cloudwatch_log_group" "cloudwatch_log_group" {
+  name = "/aws/events/${random_pet.random_pet.id}"
 
   tags = {
-    Name = "${random_pet.this.id}-log-group"
+    Name = "${random_pet.random_pet.id}-log-group"
   }
 }

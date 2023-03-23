@@ -30,7 +30,7 @@ resource "aws_cloudwatch_event_bus" "event_bus" {
   tags = merge(var.additional_tags, local.tags)
 }
 
-resource "aws_schemas_discoverer" "this" {
+resource "aws_schemas_discoverer" "schemas_discoverer" {
   count = var.create_schemas_discoverer ? 1 : 0
 
   source_arn  = var.create_bus ? aws_cloudwatch_event_bus.event_bus[0].arn : data.aws_cloudwatch_event_bus.event_bus[0].arn
@@ -39,7 +39,7 @@ resource "aws_schemas_discoverer" "this" {
   tags = merge(var.additional_tags, local.tags)
 }
 
-resource "aws_cloudwatch_event_rule" "this" {
+resource "aws_cloudwatch_event_rule" "cloudwatch_event_rule" {
   for_each = { for k, v in local.eventbridge_rules : v.name => v if var.create_rules }
 
   name        = each.value.Name
@@ -58,7 +58,7 @@ resource "aws_cloudwatch_event_rule" "this" {
   })
 }
 
-resource "aws_cloudwatch_event_target" "this" {
+resource "aws_cloudwatch_event_target" "cloudwatch_event_target" {
   for_each = { for k, v in local.eventbridge_targets : v.name => v if var.create_targets }
 
   event_bus_name = var.create_bus ? aws_cloudwatch_event_bus.event_bus[0].name : var.bus_name
@@ -131,10 +131,10 @@ resource "aws_cloudwatch_event_target" "this" {
     }
   }
 
-  depends_on = [aws_cloudwatch_event_rule.this]
+  depends_on = [aws_cloudwatch_event_rule.cloudwatch_event_rule]
 }
 
-resource "aws_cloudwatch_event_archive" "this" {
+resource "aws_cloudwatch_event_archive" "cloudwatch_event_archive" {
   for_each = var.create_archives ? var.archives : {}
 
   name             = each.key
@@ -145,7 +145,7 @@ resource "aws_cloudwatch_event_archive" "this" {
   retention_days = lookup(each.value, "retention_days", null)
 }
 
-resource "aws_cloudwatch_event_bus_policy" "this" {
+resource "aws_cloudwatch_event_bus_policy" "cloudwatch_event_bus_policy" {
   count = var.create_event_bus_policy ? 1 : 0
 
   policy         = var.event_bus_policy
