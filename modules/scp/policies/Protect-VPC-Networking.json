@@ -1,0 +1,59 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "ProtectVPCAndNetworkingResourcesEc2",
+            "Effect": "Deny",
+            "Action": [
+                "ec2:Create*",
+                "ec2:Delete*",
+                "ec2:Modify*",
+                "ec2:Associate*",
+                "ec2:Disassociate*",
+                "ec2:Replace*"
+            ],
+            "Resource": [
+                "arn:aws:ec2:*:*:vpc/*",
+                "arn:aws:ec2:*:*:vpc-endpoint/*",
+                "arn:aws:ec2:*:*:vpn*",
+                "arn:aws:ec2:*:*:customer-gateway/*",
+                "arn:aws:ec2:*:*:route-table/*",
+                "arn:aws:ec2:*:*:internet-gateway/*",
+                "arn:aws:ec2:*:*:transit-gateway*",
+                "arn:aws:ec2:*:*:network-acl/*",
+                "arn:aws:ec2:*:*:dhcp-options/*",
+                "arn:aws:ec2:*:*:subnet/*",
+                "arn:aws:ec2:*:*:natgateway/*"
+            ],
+            "Condition": {
+              "StringNotLike": {
+                  "aws:PrincipalArn": [
+                      "arn:aws:iam::*:role/Cloud-Admin",
+                      "arn:aws:iam::*:role/bkutfeassumeadmin"
+                  ]
+              }
+          }
+        },
+        {
+          "Sid": "ProtectVPCAndNetworkingResourcesOther",
+          "Effect": "Deny",
+          "Action": [
+            "directconnect:Create*",
+            "directconnect:Delete*",
+            "globalaccelerator:Create*",
+            "globalaccelerator:Delete*",
+            "globalaccelerator:Provision*",
+            "globalaccelerator:Deprovision*"
+          ],
+          "Resource": ["*"],
+          "Condition": {
+            "StringNotLike": {
+                "aws:PrincipalArn": [
+                    "arn:aws:iam::*:role/Cloud-Admin",
+                    "arn:aws:iam::*:role/bkutfeassumeadmin"
+                ]
+            }
+        }
+      }
+    ]
+}

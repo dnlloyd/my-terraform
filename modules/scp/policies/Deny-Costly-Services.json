@@ -1,0 +1,45 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+      {
+          "Sid": "DenyCostlyServices",
+          "Effect": "Deny",
+          "Action": [
+              "sagemaker:Create*",
+              "sagemaker:Delete*",
+              "sagemaker:Associate*",
+              "sagemaker:Disassociate*",
+              "sagemaker:Register*",
+              "sagemaker:Deregister*",
+              "sagemaker:Put*",
+              "sagemaker:Update*",
+              "machinelearning:Create*",
+              "machinelearning:Delete*",
+              "machinelearning:Update*",
+              "redshift:Batch*",
+              "redshift:Create*",
+              "redshift:Delete*",
+              "redshift:Enable*",
+              "redshift:Disable*",
+              "redshift:Modify*",
+              "redshift:Purchase*",
+              "dms:Create*",
+              "dms:Delete*",
+              "dms:Modify*",
+              "dms:Update*",
+              "redshift-serverless:Create*",
+              "redshift-serverless:Delete*",
+              "redshift-serverless:Update*"
+          ],
+          "Resource": ["*"],
+          "Condition": {
+            "StringNotLike": {
+                "aws:PrincipalArn": [
+                    "arn:aws:iam::*:role/Cloud-Admin",
+                    "arn:aws:iam::*:role/bkutfeassumeadmin"
+                ]
+            }
+        }
+      }
+  ]
+}
