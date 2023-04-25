@@ -26,34 +26,105 @@
                 "arn:aws:ec2:*:*:natgateway/*"
             ],
             "Condition": {
-              "StringNotLike": {
-                  "aws:PrincipalArn": [
-                      "arn:aws:iam::*:role/Cloud-Admin",
-                      "arn:aws:iam::*:role/bkutfeassumeadmin"
-                  ]
-              }
-          }
+                "StringNotLike": {
+                    "aws:PrincipalArn": [
+                        "arn:aws:iam::*:role/Cloud-Admin",
+                        "arn:aws:iam::*:role/bkutfeassumeadmin"
+                    ]
+                }
+            }
         },
         {
-          "Sid": "ProtectVPCAndNetworkingResourcesOther",
-          "Effect": "Deny",
-          "Action": [
-            "directconnect:Create*",
-            "directconnect:Delete*",
-            "globalaccelerator:Create*",
-            "globalaccelerator:Delete*",
-            "globalaccelerator:Provision*",
-            "globalaccelerator:Deprovision*"
-          ],
-          "Resource": ["*"],
-          "Condition": {
-            "StringNotLike": {
-                "aws:PrincipalArn": [
-                    "arn:aws:iam::*:role/Cloud-Admin",
-                    "arn:aws:iam::*:role/bkutfeassumeadmin"
-                ]
+            "Sid": "ProtectVPCAndNetworkingResourcesOther",
+            "Effect": "Deny",
+            "Action": [
+                "directconnect:Create*",
+                "directconnect:Delete*",
+                "globalaccelerator:Create*",
+                "globalaccelerator:Delete*",
+                "globalaccelerator:Provision*",
+                "globalaccelerator:Deprovision*"
+            ],
+            "Resource": [
+                "*"
+            ],
+            "Condition": {
+                "StringNotLike": {
+                    "aws:PrincipalArn": [
+                        "arn:aws:iam::*:role/Cloud-Admin",
+                        "arn:aws:iam::*:role/bkutfeassumeadmin"
+                    ]
+                }
+            }
+        },
+        {
+            "Sid": "ProtectAviatrixIamByTag1",
+            "Effect": "Deny",
+            "NotAction": [
+                "iam:Get*",
+                "iam:List*"
+            ],
+            "Resource": [
+                "*"
+            ],
+            "Condition": {
+                "StringEqualsIgnoreCase": {
+                    "aws:ResourceTag/ApplicationName": ["Aviatrix"]
+                },
+                "StringNotLike": {
+                    "aws:PrincipalArn": [
+                        "arn:aws:iam::*:role/Cloud-Admin",
+                        "arn:aws:iam::*:role/aviatrix-role-app*"
+                    ]
+                }
+            }
+        },
+        {
+            "Sid": "ProtectAviatrixIamByTag2",
+            "Effect": "Deny",
+            "NotAction": [
+                "iam:Get*",
+                "iam:List*"
+            ],
+            "Resource": [
+                "*"
+            ],
+            "Condition": {
+                "StringEqualsIgnoreCase": {
+                    "aws:ResourceTag/Aviatrix-Created-Resource": ["Do-Not-Delete-Aviatrix-Created-Resource"]
+                },
+                "StringNotLike": {
+                    "aws:PrincipalArn": [
+                        "arn:aws:iam::*:role/Cloud-Admin",
+                        "arn:aws:iam::*:role/aviatrix-role-app*"
+                    ]
+                }
+            }
+        },
+        {
+            "Sid": "ProtectAviatrixEc2",
+            "Effect": "Deny",
+            "NotAction": [
+                "ec2:Describe*",
+                "ec2:Get*",
+                "ec2:List*"
+            ],
+            "Resource": [
+                "*"
+            ],
+            "Condition": {
+                "StringEqualsIgnoreCase": {
+                    "ec2:ResourceTag/ApplicationName": [
+                        "Aviatrix"
+                    ]
+                },
+                "StringNotLike": {
+                    "aws:PrincipalArn": [
+                        "arn:aws:iam::*:role/Cloud-Admin",
+                        "arn:aws:iam::*:role/aviatrix-role-app*"
+                    ]
+                }
             }
         }
-      }
     ]
 }
